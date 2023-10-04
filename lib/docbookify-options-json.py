@@ -69,7 +69,7 @@ ALLOWED_LISTITEM_CHILD = re.compile(
 )
 
 
-class Renderer(mistune.renderers.BaseRenderer):
+class Renderer(mistune.core.BaseRenderer):
 
     def _get_method(self, name):
         try:
