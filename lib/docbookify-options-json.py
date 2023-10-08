@@ -176,9 +176,10 @@ def p_command(md):
     COMMAND_PATTERN = r'\{command\}`(.*?)`'
 
     def parse(self, m, state):
-        return ('command', m.group(1))
+        state.append_token({'type': 'command', 'raw': m.group(1)})
+        return m.end()
 
-    md.inline.register_rule('command', COMMAND_PATTERN, parse)
+    md.inline.register('command', COMMAND_PATTERN, parse)
     md.inline.rules.append('command')
 
 
@@ -186,9 +187,10 @@ def p_file(md):
     FILE_PATTERN = r'\{file\}`(.*?)`'
 
     def parse(self, m, state):
-        return ('file', m.group(1))
+        state.append_token({'type': 'file', 'raw': m.group(1)})
+        return m.end()
 
-    md.inline.register_rule('file', FILE_PATTERN, parse)
+    md.inline.register('file', FILE_PATTERN, parse)
     md.inline.rules.append('file')
 
 
@@ -196,9 +198,10 @@ def p_var(md):
     VAR_PATTERN = r'\{var\}`(.*?)`'
 
     def parse(self, m, state):
-        return ('var', m.group(1))
+        state.append_token({'type': 'var', 'raw': m.group(1)})
+        return m.end()
 
-    md.inline.register_rule('var', VAR_PATTERN, parse)
+    md.inline.register('var', VAR_PATTERN, parse)
     md.inline.rules.append('var')
 
 
@@ -206,9 +209,10 @@ def p_env(md):
     ENV_PATTERN = r'\{env\}`(.*?)`'
 
     def parse(self, m, state):
-        return ('env', m.group(1))
+        state.append_token({'type': 'env', 'raw': m.group(1)})
+        return m.end()
 
-    md.inline.register_rule('env', ENV_PATTERN, parse)
+    md.inline.register('env', ENV_PATTERN, parse)
     md.inline.rules.append('env')
 
 
@@ -216,9 +220,10 @@ def p_option(md):
     OPTION_PATTERN = r'\{option\}`(.*?)`'
 
     def parse(self, m, state):
-        return ('option', m.group(1))
+        state.append_token({'type': 'option', 'raw': m.group(1)})
+        return m.end()
 
-    md.inline.register_rule('option', OPTION_PATTERN, parse)
+    md.inline.register('option', OPTION_PATTERN, parse)
     md.inline.rules.append('option')
 
 
@@ -228,7 +233,7 @@ def p_manpage(md):
     def parse(self, m, state):
         return ('manpage', m.group(1), m.group(2))
 
-    md.inline.register_rule('manpage', MANPAGE_PATTERN, parse)
+    md.inline.register('manpage', MANPAGE_PATTERN, parse)
     md.inline.rules.append('manpage')
 
 
@@ -243,7 +248,7 @@ def p_admonition(md):
             'params': [m.group(1)],
         }
 
-    md.block.register_rule('admonition', ADMONITION_PATTERN, parse)
+    md.block.register('admonition', ADMONITION_PATTERN, parse)
     md.block.rules.append('admonition')
 
 
