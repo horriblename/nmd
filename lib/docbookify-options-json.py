@@ -53,7 +53,7 @@ def unpivot(options: Dict[Key, JSON]) -> List[JSON]:
                 opt['loc'],
             )
         result[name] = opt
-    return result.values()
+    return list(result.values())
 
 
 admonitions = {
