@@ -2,7 +2,7 @@
   description = "A documentation framework for projects based on NixOS modules";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs?rev=e635192892f5abbc2289eaac3a73cdb249abaefd";
     scss-reset = {
       url = "github:andreymatin/scss-reset";
       flake = false;
