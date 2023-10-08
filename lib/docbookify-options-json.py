@@ -181,7 +181,6 @@ def p_command(md):
         return m.end()
 
     md.inline.register('command', COMMAND_PATTERN, parse)
-    md.inline.rules.append('command')
 
 
 def p_file(md):
@@ -192,7 +191,6 @@ def p_file(md):
         return m.end()
 
     md.inline.register('file', FILE_PATTERN, parse)
-    md.inline.rules.append('file')
 
 
 def p_var(md):
@@ -203,7 +201,6 @@ def p_var(md):
         return m.end()
 
     md.inline.register('var', VAR_PATTERN, parse)
-    md.inline.rules.append('var')
 
 
 def p_env(md):
@@ -214,7 +211,6 @@ def p_env(md):
         return m.end()
 
     md.inline.register('env', ENV_PATTERN, parse)
-    md.inline.rules.append('env')
 
 
 def p_option(md):
@@ -225,7 +221,6 @@ def p_option(md):
         return m.end()
 
     md.inline.register('option', OPTION_PATTERN, parse)
-    md.inline.rules.append('option')
 
 
 def p_manpage(md):
@@ -240,7 +235,6 @@ def p_manpage(md):
         return m.end()
 
     md.inline.register('manpage', MANPAGE_PATTERN, parse)
-    md.inline.rules.append('manpage')
 
 
 def p_admonition(md):
@@ -256,7 +250,6 @@ def p_admonition(md):
         return m.end()
 
     md.block.register('admonition_', ADMONITION_PATTERN, parse)
-    md.block.rules.append('admonition')
 
 
 # Converts option documentation texts such that it contains only plain DocBook
