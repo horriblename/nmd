@@ -98,7 +98,7 @@ class Renderer(mistune.core.BaseRenderer):
         info = f" language={quoteattr(info)}" if info is not None else ""
         return f"<programlisting{info}>\n{escape(text)}</programlisting>"
 
-    def link(self, link, text=None, title=None):
+    def link(self, text, link, title=None):
         tag = "link"
         if link[0:1] == '#':
             if text == "":
@@ -114,12 +114,12 @@ class Renderer(mistune.core.BaseRenderer):
             link = quoteattr(link)
         return f"<{tag} {attr}={link}>{text}</{tag}>"
 
-    def list(self, text, ordered, level, start=None):
+    def list(self, text, ordered, **attrs):
         if ordered:
             raise NotImplementedError("ordered lists not supported yet")
         return f"<itemizedlist>\n{text}\n</itemizedlist>"
 
-    def list_item(self, text, level):
+    def list_item(self, text):
         # If the list item does not contain an allowed element then wrap it in a
         # paragraph.
         if not ALLOWED_LISTITEM_CHILD.match(text):
