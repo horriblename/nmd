@@ -136,7 +136,8 @@ class Renderer(mistune.core.BaseRenderer):
     def strong(self, text):
         return f"<emphasis role=\"strong\">{text}</emphasis>"
 
-    def admonition(self, text, kind):
+    def admonition(self, text, **args):
+        kind = args['kind']
         if kind not in admonitions:
             raise NotImplementedError(f"admonition {kind} not supported yet")
         tag = admonitions[kind]
@@ -163,9 +164,9 @@ class Renderer(mistune.core.BaseRenderer):
     def env(self, text):
         return f"<envar>{escape(text)}</envar>"
 
-    def manpage(self, page, section):
+    def manpage(self, page, **args):
         title = f"<refentrytitle>{escape(page)}</refentrytitle>"
-        vol = f"<manvolnum>{escape(section)}</manvolnum>"
+        vol = f"<manvolnum>{escape(args['section'])}</manvolnum>"
         return f"<citerefentry>{title}{vol}</citerefentry>"
 
     def finalize(self, data):
@@ -231,7 +232,12 @@ def p_manpage(md):
     MANPAGE_PATTERN = r'\{manpage\}`(.*?)\((.+?)\)`'
 
     def parse(self, m, state):
-        return ('manpage', m.group(1), m.group(2))
+        state.append_token({
+            'token': 'manpage',
+            'raw': m.group(1),
+            'section': m.group(2)
+        })
+        return m.end()
 
     md.inline.register('manpage', MANPAGE_PATTERN, parse)
     md.inline.rules.append('manpage')
@@ -242,13 +248,14 @@ def p_admonition(md):
                                     flags=re.MULTILINE | re.DOTALL)
 
     def parse(self, m, state):
-        return {
+        state.appand_token({
             'type': 'admonition',
-            'children': self.parse(m.group(2), state),
-            'params': [m.group(1)],
-        }
+            'text': m.group(2),
+            'kind': m.group(1),
+        })
+        return m.end()
 
-    md.block.register('admonition', ADMONITION_PATTERN, parse)
+    md.block.register('admonition_', ADMONITION_PATTERN, parse)
     md.block.rules.append('admonition')
 
 
