@@ -11,6 +11,7 @@ from enum import Enum
 from io import StringIO
 from typing import Any, Dict, List
 from xml.sax.saxutils import escape, quoteattr
+from mistune.renderers.markdown import MarkdownRenderer
 
 JSON = Dict[str, Any]
 
@@ -69,7 +70,7 @@ ALLOWED_LISTITEM_CHILD = re.compile(
 )
 
 
-class Renderer(mistune.core.BaseRenderer):
+class Renderer(MarkdownRenderer):
 
     def _get_method(self, name):
         try:
@@ -82,23 +83,37 @@ class Renderer(mistune.core.BaseRenderer):
 
             return not_supported
 
-    def text(self, text):
-        return escape(text)
+    def render_children(self, token, state):
+        return self.render_tokens(token['children'], state)
 
-    def paragraph(self, text):
-        return f"<simpara>{text}</simpara>\n"
+    def text(self, token, state):
+        return escape(token['raw'])
 
-    def newline(self):
+    def paragraph(self, token, state):
+        return f"<simpara>{self.render_children(token, state)}</simpara>\n"
+
+    # def blank_line(self, token, state):
+    #     return ""
+
+    def newline(self, token, state):
         return "<literallayout>\n</literallayout>"
 
-    def codespan(self, text):
+    def codespan(self, token, state):
+        text = token['raw']
         return f"<literal>{escape(text)}</literal>"
 
-    def block_code(self, text, info=None):
-        info = f" language={quoteattr(info)}" if info is not None else ""
-        return f"<programlisting{info}>\n{escape(text)}</programlisting>"
+    def block_code(self, token, info=None):
+        attrs = token.get('attrs', {})
+        info = attrs.get('info', '')
+        code = token['raw']
 
-    def link(self, text, link, title=None):
+        info = f" language={quoteattr(info)}"
+        return f"<programlisting{info}>\n{escape(code)}</programlisting>"
+
+    def link(self, token, state):
+        # TODO: I maybe should render text
+        text = self.render_children(token, state)
+        link = token['attrs']['url']
         tag = "link"
         if link[0:1] == '#':
             if text == "":
@@ -114,12 +129,16 @@ class Renderer(mistune.core.BaseRenderer):
             link = quoteattr(link)
         return f"<{tag} {attr}={link}>{text}</{tag}>"
 
-    def list(self, text, ordered, **attrs):
-        if ordered:
+    def list(self, token, state):
+        text = self.render_children(token, state)
+        attrs = token['attrs']
+        if attrs['ordered']:
             raise NotImplementedError("ordered lists not supported yet")
         return f"<itemizedlist>\n{text}\n</itemizedlist>"
 
-    def list_item(self, text):
+    def list_item(self, token, state):
+        text = self.render_children(token, state)
+
         # If the list item does not contain an allowed element then wrap it in a
         # paragraph.
         if not ALLOWED_LISTITEM_CHILD.match(text):
@@ -127,17 +146,21 @@ class Renderer(mistune.core.BaseRenderer):
         else:
             return f"<listitem>{text}</listitem>\n"
 
-    def block_text(self, text):
+    def block_text(self, token, state):
+        text = self.render_children(token, state)
         return text
 
-    def emphasis(self, text):
+    def emphasis(self, token, state):
+        text = self.render_children(token, state)
         return f"<emphasis>{text}</emphasis>"
 
-    def strong(self, text):
+    def strong(self, token, state):
+        text = self.render_children(token, state)
         return f"<emphasis role=\"strong\">{text}</emphasis>"
 
-    def admonition(self, text, **args):
-        kind = args['kind']
+    def admonition(self, token, state):
+        text = self.render_children(token, state)
+        kind = token['attrs']['kind']
         if kind not in admonitions:
             raise NotImplementedError(f"admonition {kind} not supported yet")
         tag = admonitions[kind]
@@ -146,29 +169,39 @@ class Renderer(mistune.core.BaseRenderer):
         # available to restore the trailer.
         return f"<{tag}><para>{text.rstrip()}</para></{tag}>"
 
-    def block_quote(self, text):
+    def block_quote(self, token, state):
+        text = self.render_children(token, state)
         return f"<blockquote><para>{text}</para></blockquote>"
 
-    def command(self, text):
+    def command(self, token, state):
+        text = token['raw']
         return f"<command>{escape(text)}</command>"
 
-    def option(self, text):
+    def option(self, token, state):
+        text = token['raw']
         return f"<option>{escape(text)}</option>"
 
-    def file(self, text):
+    def file(self, token, state):
+        text = token['raw']
         return f"<filename>{escape(text)}</filename>"
 
-    def var(self, text):
+    def var(self, token, state):
+        text = token['raw']
         return f"<varname>{escape(text)}</varname>"
 
-    def env(self, text):
+    def env(self, token, state):
+        text = token['raw']
         return f"<envar>{escape(text)}</envar>"
 
-    def manpage(self, page, **args):
+    def manpage(self, token, state):
+        page = token['raw']
+        section = token['attrs']['section']
+
         title = f"<refentrytitle>{escape(page)}</refentrytitle>"
-        vol = f"<manvolnum>{escape(args['section'])}</manvolnum>"
+        vol = f"<manvolnum>{escape(section)}</manvolnum>"
         return f"<citerefentry>{title}{vol}</citerefentry>"
 
+    # FIXME: is this still needed?
     def finalize(self, data):
         return "".join(data)
 
