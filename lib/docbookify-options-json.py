@@ -174,63 +174,64 @@ class Renderer(mistune.core.BaseRenderer):
 
 
 def p_command(md):
-    COMMAND_PATTERN = r'\{command\}`(.*?)`'
+    COMMAND_PATTERN = r'\{command\}`(?P<command_code>.*?)`'
 
     def parse(self, m, state):
-        state.append_token({'type': 'command', 'raw': m.group(1)})
+        state.append_token({'type': 'command', 'raw': m.group('command_code')})
         return m.end()
 
     md.inline.register('command', COMMAND_PATTERN, parse)
 
 
 def p_file(md):
-    FILE_PATTERN = r'\{file\}`(.*?)`'
+    FILE_PATTERN = r'\{file\}`(?P<file_code>.*?)`'
 
     def parse(self, m, state):
-        state.append_token({'type': 'file', 'raw': m.group(1)})
+        state.append_token({'type': 'file', 'raw': m.group('file_code')})
         return m.end()
 
     md.inline.register('file', FILE_PATTERN, parse)
 
 
 def p_var(md):
-    VAR_PATTERN = r'\{var\}`(.*?)`'
+    VAR_PATTERN = r'\{var\}`(?P<var_code>.*?)`'
 
     def parse(self, m, state):
-        state.append_token({'type': 'var', 'raw': m.group(1)})
+        state.append_token({'type': 'var', 'raw': m.group('var_code')})
         return m.end()
 
     md.inline.register('var', VAR_PATTERN, parse)
+    # md.inline.rules.append('var')
 
 
 def p_env(md):
-    ENV_PATTERN = r'\{env\}`(.*?)`'
+    ENV_PATTERN = r'\{env\}`(?P<env_code>.*?)`'
 
     def parse(self, m, state):
-        state.append_token({'type': 'env', 'raw': m.group(1)})
+        state.append_token({'type': 'env', 'raw': m.group('env_code')})
         return m.end()
 
     md.inline.register('env', ENV_PATTERN, parse)
 
 
 def p_option(md):
-    OPTION_PATTERN = r'\{option\}`(.*?)`'
+    OPTION_PATTERN = r'\{option\}`(?P<option_code>.*?)`'
 
     def parse(self, m, state):
-        state.append_token({'type': 'option', 'raw': m.group(1)})
+        state.append_token({'type': 'option', 'raw': m.group('option_code')})
         return m.end()
 
     md.inline.register('option', OPTION_PATTERN, parse)
 
 
 def p_manpage(md):
-    MANPAGE_PATTERN = r'\{manpage\}`(.*?)\((.+?)\)`'
+    MANPAGE_PATTERN = r'\{manpage\}`(?P<manpage_code>.*?)\((?P<manpage_section>.+?)\)`'
 
     def parse(self, m, state):
         state.append_token({
-            'token': 'manpage',
-            'raw': m.group(1),
-            'section': m.group(2)
+            'type': 'manpage',
+            'raw': m.group('manpage_code'),
+            'attrs': {'section': m.group('manpage_section')}
         })
         return m.end()
 
@@ -238,14 +239,14 @@ def p_manpage(md):
 
 
 def p_admonition(md):
-    ADMONITION_PATTERN = re.compile(r'^::: \{([^\n]*?)\}\n(.*?)^:::$\n*',
+    ADMONITION_PATTERN = re.compile(r'^::: \{(?P<admonition_kind>[^\n]*?)\}\n(?P<admonition_text>.*?)^:::$\n*',
                                     flags=re.MULTILINE | re.DOTALL)
 
     def parse(self, m, state):
         state.appand_token({
             'type': 'admonition',
-            'text': m.group(2),
-            'kind': m.group(1),
+            'children': self.parse(m.group('admonition_text'), state),
+            'attrs': {'kind': m.group('admonition_kind')}
         })
         return m.end()
 
