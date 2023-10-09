@@ -1,5 +1,7 @@
 # nmd
 
+This is a fork of [nmd](https://sr.ht/~rycee/nmd) which migrates to mistune v3 (from v2)
+
 ## Introduction
 
 The nmd project is a standalone version of the documentation system
